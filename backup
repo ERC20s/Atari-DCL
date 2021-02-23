@@ -1,0 +1,244 @@
+import * as RestrictedActions from '@decentraland/RestrictedActions'
+import { movePlayerTo } from '@decentraland/RestrictedActions'
+import * as ui from '@dcl/ui-scene-utils'
+
+let points: number = 0;
+
+const canvas = new UICanvas()
+const camera = Camera.instance
+
+const bugscore = new UIText(canvas)
+bugscore.width = 76
+bugscore.height = 76
+bugscore.hAlign = "right"
+bugscore.vAlign = "bottom"
+bugscore.positionY = 110
+bugscore.positionX = -120
+bugscore.fontSize = 25
+bugscore.color = Color4.Black()
+
+
+@Component("timer")
+export class Timer {
+  totalTime: number
+  timeLeft: number
+  constructor(time: number) {
+    this.totalTime = time
+    this.timeLeft = time
+  }
+}
+
+// component group to list all entities with a Timer component
+export const timers = engine.getComponentGroup(Timer)
+
+// system to update all timers
+export class LoopSystem {
+  update(dt: number) {
+    for (let timerEntity of timers.entities) {
+      let timer = spider2.getComponent(Timer)
+      if (timer.timeLeft > 5) {
+        timer.timeLeft -= dt
+      } else {
+        timer.timeLeft = timer.totalTime
+
+      }
+    }
+  }
+}
+
+const point1 = new Vector3(22, 0, 24)
+const point2 = new Vector3(24, 0, 3)
+const point3 = new Vector3(24, 0, 24)
+const point4 = new Vector3(48, 0, 77)
+const path: Vector3[] = [point1, point2, point3, point4]
+
+@Component('lerpData')
+export class LerpData {
+  array: Vector3[] = path
+  origin: number = 0
+  target: number = 1
+  fraction: number = 0
+}
+
+
+
+const home = new Entity()
+engine.addEntity(home)
+home.addComponent(new GLTFShape("models/home.gltf"))
+home.addComponent(new Transform({ position: new Vector3(0, 0, 0) }));
+
+const entity = new Entity('entity')
+engine.addEntity(entity)
+const gltfShape = new GLTFShape(
+  'models/grass/FloorBaseGrass_01.glb'
+)
+entity.addComponent(gltfShape)
+const transform2 = new Transform({
+  position: new Vector3(40, 0, 40),
+  rotation: new Quaternion(0, 0, 0, 1),
+  scale: new Vector3(5, 1, 5),
+})
+entity.addComponentOrReplace(transform2)
+
+
+
+const imageTexture = new Texture('images/UI_Guestbook.png')
+
+
+const inventoryContainer = new UIContainerStack(canvas)
+inventoryContainer.adaptWidth = true
+inventoryContainer.adaptHeight = true
+inventoryContainer.width = 200
+inventoryContainer.height = 75
+inventoryContainer.positionY = 100
+inventoryContainer.positionX = 0
+inventoryContainer.color = Color4.Yellow()
+inventoryContainer.hAlign = "right"
+inventoryContainer.vAlign = "bottom"
+inventoryContainer.stackOrientation = UIStackOrientation.VERTICAL
+inventoryContainer.opacity = 0.1
+inventoryContainer.visible = false
+
+
+const clickexit = new Entity()
+engine.addEntity(clickexit)
+clickexit.addComponent(new GLTFShape("models/home.glb"))
+clickexit.addComponent(new Transform({ position: new Vector3(0, 0, 0) }));
+clickexit.addComponent(
+
+  new OnPointerDown(
+    (_e) => {
+      RestrictedActions.movePlayerTo({ x: 40, y: 3, z: 40 }, { x: 3, y: 50, z: 40 }),
+        inventoryContainer.visible = false
+    },
+    { hoverText: "Exit!",
+    distance: 5,  }
+  )
+)
+
+
+  const idoor = new Entity()
+  engine.addEntity(idoor)
+  idoor.addComponent(new GLTFShape("models/lama.gltf"))
+  idoor.addComponent(new Transform({ position: new Vector3(6,0,40), rotation: Quaternion.Euler(0, 90, 0), }));
+
+  idoor.addComponent(
+    new OnPointerDown(
+      (_e) => {
+        RestrictedActions.movePlayerTo({ x: 3, y: 25, z: 40 }, { x: 40, y: 0, z: 40 }),
+          inventoryContainer.visible = true
+          bugscore.visible = true
+      },
+      { hoverText: "Go upstairs!",
+      distance: 50,
+
+    }
+    )
+  )
+
+
+
+
+const bug = new Entity()
+engine.addEntity(bug)
+bug.addComponent(new GLTFShape('models/bug.glb'))
+bug.addComponent(new Transform({
+    position: new Vector3(40, 0, 40),
+    rotation: Quaternion.Euler(0, 0, 0),
+    scale: new Vector3(1.5, 1, 1.5),
+}))
+bug.addComponent(
+  new OnPointerDown(() => {
+    points = points + 5;
+    bugscore.value = points.toString()
+  },
+    {
+      hoverText: "BANG!",
+      distance: 500, }
+)
+)
+
+const spider = new Entity()
+engine.addEntity(spider)
+spider.addComponent(new GLTFShape('models/spider.gltf'))
+spider.addComponent(new Transform({
+    position: new Vector3(30, 0, 40),
+    rotation: Quaternion.Euler(0, 90, 0),
+    scale: new Vector3(2, 1, 2),
+}))
+spider.addComponent(
+  new OnPointerDown(() => {
+    points = points + 5;
+    bugscore.value = points.toString()
+  },
+    {
+      hoverText: "BANG!",
+      distance: 500, }
+)
+)
+
+const spider2 = new Entity()
+engine.addEntity(spider2)
+spider2.addComponent(new GLTFShape('models/spider.gltf'))
+spider2.addComponent(new Transform({
+    position: new Vector3(20, 0, 20),
+    rotation: Quaternion.Euler(0, 0, 0),
+    scale: new Vector3(2, 1, 2),
+}))
+spider2.addComponent(
+    new OnPointerDown(() => {
+      points = points + 11;
+      bugscore.value = points.toString()
+      position: new Vector3(20, -2, 20);
+    },
+      {
+        hoverText: "BANG!",
+        distance: 500, }
+  )
+  )
+
+  @Component("timeOut")
+  export class TimeOut {
+    timeLeft: number
+    constructor( time: number){
+      this.timeLeft = time
+    }
+  }
+
+  export class GnarkWalk implements ISystem {
+    update(dt: number) {
+      if (!spider2.hasComponent(TimeOut) ){
+        let transform = spider2.getComponent(Transform)
+        let path = spider2.getComponent(LerpData)
+
+        if (path.fraction < 1) {
+          path.fraction += dt/12
+          transform.position = Vector3.Lerp(
+            path.array[path.origin],
+            path.array[path.target],
+            path.fraction
+          )
+        } else {
+  	// path segment finished > next segment
+          path.origin = path.target
+          path.target += 1
+          if (path.target >= path.array.length) {
+  	  // whole path finished > back to start
+            path.target = 0
+          }
+          path.fraction = 0
+  	// face new target
+          transform.lookAt(path.array[path.target])
+
+  	// pause movement for turning
+          spider2.addComponent(new TimeOut(TURN_TIME))
+        }
+      }
+    }
+  }
+
+  const TURN_TIME = 0.9
+
+  engine.addSystem(new GnarkWalk())
+
+  spider2.addComponent(new LerpData())

@@ -1,0 +1,384 @@
+import * as RestrictedActions from '@decentraland/RestrictedActions'
+import { movePlayerTo } from '@decentraland/RestrictedActions'
+import * as ui from '@dcl/ui-scene-utils'
+import utils from '@dcl/ecs-scene-utils'
+
+let points: number = 0;
+let result: number = 0;
+
+
+const canvas = new UICanvas()
+
+const bugscore = new UIText(canvas)
+bugscore.width = 76
+bugscore.height = 76
+bugscore.hAlign = "right"
+bugscore.vAlign = "bottom"
+bugscore.positionY = 110
+bugscore.positionX = -120
+bugscore.fontSize = 25
+bugscore.color = Color4.Black()
+
+const totalscore = new UIText(canvas)
+totalscore.width = 76
+totalscore.height = 76
+totalscore.hAlign = "right"
+totalscore.vAlign = "bottom"
+totalscore.positionY = 210
+totalscore.positionX = -120
+totalscore.fontSize = 25
+totalscore.color = Color4.Black()
+
+
+const home = new Entity()
+engine.addEntity(home)
+home.addComponent(new GLTFShape("models/home.gltf"))
+home.addComponent(new Transform({ position: new Vector3(0, 0, 0) }));
+
+const entity = new Entity('entity')
+engine.addEntity(entity)
+const gltfShape = new GLTFShape(
+  'models/grass/FloorBaseGrass_01.glb'
+)
+entity.addComponent(gltfShape)
+const transform2 = new Transform({
+  position: new Vector3(40, 0, 40),
+  rotation: new Quaternion(0, 0, 0, 1),
+  scale: new Vector3(5, 1, 5),
+})
+entity.addComponentOrReplace(transform2)
+
+
+
+const imageTexture = new Texture('images/UI_Guestbook.png')
+
+
+const inventoryContainer = new UIContainerStack(canvas)
+inventoryContainer.adaptWidth = true
+inventoryContainer.adaptHeight = true
+inventoryContainer.width = 200
+inventoryContainer.height = 75
+inventoryContainer.positionY = 100
+inventoryContainer.positionX = 0
+inventoryContainer.color = Color4.Yellow()
+inventoryContainer.hAlign = "right"
+inventoryContainer.vAlign = "bottom"
+inventoryContainer.stackOrientation = UIStackOrientation.VERTICAL
+inventoryContainer.opacity = 0.1
+inventoryContainer.visible = false
+
+
+const clickexit = new Entity()
+engine.addEntity(clickexit)
+clickexit.addComponent(new GLTFShape("models/home.glb"))
+clickexit.addComponent(new Transform({ position: new Vector3(0, 0, 0) }));
+clickexit.addComponent(
+
+  new OnPointerDown(
+    (_e) => {
+      RestrictedActions.movePlayerTo({ x: 40, y: 3, z: 40 }, { x: 3, y: 50, z: 40 }),
+        inventoryContainer.visible = false
+        result = points
+        totalscore.value = "Result: " + result.toString() + " points"
+    },
+    { hoverText: "Exit!",
+    distance: 5,  }
+  )
+)
+
+
+  const idoor = new Entity()
+  engine.addEntity(idoor)
+  idoor.addComponent(new GLTFShape("models/lama.gltf"))
+  idoor.addComponent(new Transform({ position: new Vector3(6,0,40), rotation: Quaternion.Euler(0, 90, 0), }));
+
+  idoor.addComponent(
+    new OnPointerDown(
+      (_e) => {
+        home.addComponentOrReplace(new Transform({
+            position: new Vector3(0, 0, 0),
+          }));
+        RestrictedActions.movePlayerTo({ x: 3, y: 25, z: 40 }, { x: 40, y: 0, z: 40 }),
+          inventoryContainer.visible = true;
+          bugscore.visible = true;
+          bug.addComponent(new Transform())
+
+      },
+      { hoverText: "Go upstairs!",
+      distance: 50,
+
+    }
+    )
+  )
+
+
+
+
+
+  const point1 = new Vector3(15, 0, 90)
+  const point2 = new Vector3(15, 0, 60)
+  const point3 = new Vector3(15, 0, 40)
+  const point4 = new Vector3(15, 0, 20)
+  const point5 = new Vector3(15, 0, -10)
+  const point6 = new Vector3(25,0, 90)
+  const point7 = new Vector3(25, 0, 60)
+  const point8 = new Vector3(25, 0, 40)
+  const point9 = new Vector3(25, 0, 20)
+  const point10 = new Vector3(25, 0, -10)
+  const point11 = new Vector3(40, 0, 90)
+  const point12 = new Vector3(40, 0, 60)
+  const point13 = new Vector3(40, 0, 40)
+  const point14 = new Vector3(40, 0, 20)
+  const point15 = new Vector3(40, 222, -10)
+  const point16 = new Vector3(70,0, 90)
+  const point17 = new Vector3(70, 0, 60)
+  const point18 = new Vector3(70, 0, 40)
+  const point19 = new Vector3(70, 0, 20)
+  const point20 = new Vector3(70, 0, -10)
+  const point21 = new Vector3(90, 0, 90)
+  const point22 = new Vector3(90, 0, 60)
+  const point23 = new Vector3(90, 0, 40)
+  const point24 = new Vector3(90, 0, 20)
+  const point25 = new Vector3(90, 222, -10)
+
+const myPath = new Path3D([point6, point7, point8, point9, point10, point11])
+
+@Component("pathData")
+export class PathData {
+  origin: Vector3 = myPath.path[0]
+  target: Vector3 = myPath.path[1]
+  fraction: number = 0
+  nextPathIndex: number = 1
+}
+
+export class PatrolPath implements ISystem {
+  update(dt: number) {
+    let transform2 = bug.getComponent(Transform)
+    let path2 = bug.getComponent(PathData)
+    if (path2.fraction < 1) {
+      transform2.position = Vector3.Lerp(path2.origin, path2.target, path2.fraction)
+      path2.fraction += dt / 6
+    } else {
+      path2.nextPathIndex += 1
+      if (path2.nextPathIndex >= myPath.path.length) {
+        path2.nextPathIndex = 0
+      }
+      path2.origin = path2.target
+      path2.target = myPath.path[path2.nextPathIndex]
+      path2.fraction = 0
+    }
+  }
+}
+
+engine.addSystem(new PatrolPath())
+
+const bug = new Entity()
+bug.addComponent(new GLTFShape('models/bug.glb'))
+bug.addComponent(new Transform({
+    position: new Vector3(20, 20, 20),
+    rotation: Quaternion.Euler(0, 0, 0),
+    scale: new Vector3(2, 1, 2),
+}))
+bug.addComponent(
+  new OnPointerDown(() => {
+    points = points + 50;
+    bugscore.value = points.toString() + " points"
+
+  },
+    {
+      hoverText: "BANG!",
+      distance: 500, }
+)
+)
+
+
+bug.addComponent(new PathData())
+
+engine.addEntity(bug);
+
+const apoint1 = new Vector3(2, 1, 2)
+const apoint2 = new Vector3(8, 1, 3)
+const apoint3 = new Vector3(8, 4, 7)
+const apoint4 = new Vector3(2, 0, 7)
+
+const amyPath = new Path3D([apoint1, apoint2, apoint3, apoint4])
+
+@Component("pathDataa")
+export class PathDataa {
+  origin: Vector3 = amyPath.path[0]
+  target: Vector3 = amyPath.path[1]
+  fraction: number = 0
+  nextPathIndex: number = 1
+}
+
+export class PatrolPatha implements ISystem {
+  update(dt: number) {
+    let atransform = myEntity.getComponent(Transform)
+    let apath = myEntity.getComponent(PathDataa)
+    if (apath.fraction < 1) {
+      atransform.position = Vector3.Lerp(apath.origin, apath.target, apath.fraction)
+      apath.fraction += dt / 6
+    } else {
+      apath.nextPathIndex += 1
+      if (apath.nextPathIndex >= myPath.path.length) {
+        apath.nextPathIndex = 0
+      }
+      apath.origin = apath.target
+      apath.target = amyPath.path[apath.nextPathIndex]
+      apath.fraction = 0
+    }
+  }
+}
+
+engine.addSystem(new PatrolPatha())
+
+const myEntity = new Entity()
+
+
+const spider = new Entity()
+engine.addEntity(spider)
+spider.addComponent(new GLTFShape('models/spider.gltf'))
+spider.addComponent(new Transform({
+    position: new Vector3(30, 0, 40),
+    rotation: Quaternion.Euler(0, 90, 0),
+    scale: new Vector3(2, 1, 2),
+}))
+
+
+
+
+const spider2 = new Entity()
+engine.addEntity(spider2)
+spider2.addComponent(new GLTFShape('models/spider.gltf'))
+spider2.addComponent(new Transform({
+    position: new Vector3(20, 0, 20),
+    rotation: Quaternion.Euler(0, 0, 0),
+    scale: new Vector3(2, 1, 2),
+}))
+spider2.addComponent(
+    new OnPointerDown(() => {
+      home.addComponentOrReplace(new Transform({
+          position: new Vector3(20, 0, 20),
+        }));
+      points = points + 11;
+      bugscore.value = points.toString() + " points"
+    },
+      {
+        hoverText: "BANG!",
+        distance: 500, }
+  )
+  )
+
+  // Animations
+  let gnarkAnimator = new Animator()
+  spider2.addComponent(gnarkAnimator)
+
+
+  ///// WALK ALONG FIXED PATH /////
+
+  // Coordinates of path to patrol
+
+  const path: Vector3[] = [point1, point2, point3, point4, point5]
+
+  // Define custom LerpData component
+  @Component("lerpData")
+  export class LerpData {
+    array: Vector3[] = path
+    origin: number = 0
+    target: number = 1
+    fraction: number = 0
+  }
+
+  // Add custom LerpData component to Gnark
+  spider2.addComponent(new LerpData())
+
+  // Walk System
+  export class GnarkWalk implements ISystem {
+    update(dt: number) {
+      if (!spider2.hasComponent(TimeOut)){
+        let transform = spider2.getComponent(Transform)
+        let path = spider2.getComponent(LerpData)
+        if (path.fraction < 1) {
+          path.fraction += dt/2
+          transform.position = Vector3.Lerp(
+            path.array[path.origin],
+            path.array[path.target],
+            path.fraction
+          )
+        } else {
+  	// path segment finished > next segment
+          path.origin = path.target
+          path.target += 1
+          if (path.target >= path.array.length) {
+  	  // whole path finished > back to start
+            path.target = 4
+          }
+          path.fraction = 0
+  	// face new target
+          transform.lookAt(path.array[path.target])
+
+
+        }
+      }
+    }
+  }
+
+  engine.addSystem(new GnarkWalk())
+
+  // Define custom Rotate component
+  @Component("timeOut")
+  export class TimeOut {
+    timeLeft: number
+    constructor( time: number){
+      this.timeLeft = time
+    }
+  }
+
+  // Component group to hold all entities with a timeOut
+  export const pausedGroup = engine.getComponentGroup(TimeOut)
+
+  // Wait System
+  export class WaitSystem implements ISystem {
+    update(dt: number) {
+      for (let ent of pausedGroup.entities){
+        let time = ent.getComponentOrNull(TimeOut)
+        if (time){
+          if (time.timeLeft > 0) {
+            time.timeLeft -= dt
+          } else {
+            ent.removeComponent(TimeOut)
+          }
+        }
+      }
+    }
+  }
+
+  engine.addSystem(new WaitSystem())
+
+  // Object that tracks user position and rotation
+  const camera = Camera.instance
+
+  // Get distance
+  /*
+  Note:
+  This function really returns distance squared, as it's a lot more efficient to calculate.
+  The square root operation is expensive and isn't really necessary if we compare the result to squared values.
+  We also use {x,z} not {x,y}. The y-coordinate is how high up it is.
+  */
+  function distance(pos1: Vector3, pos2: Vector3): number {
+    const a = pos1.x - pos2.x
+    const b = pos1.z - pos2.z
+    return a * a + b * b
+  }
+
+  spider.addComponent(
+    new OnPointerDown(() => {
+      points = points + 5;
+      bugscore.value = points.toString() + " points"
+
+    },
+      {
+        hoverText: "BANG!",
+        distance: 500, }
+  )
+  )
